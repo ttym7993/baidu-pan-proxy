@@ -2,7 +2,7 @@
 // STARTOFFILE
 
 // URL的正则
-$url = '/http:\/\/pan\.baidu\.com.*(?:shareid=(\d+)&(?:uk=(\d+?)))/Uis';
+$url = '/(?:http:\/\/(?:pan|yun)\.baidu\.com.*(?:uk=(\d+)&(?:shareid=(\d+?)))|http:\/\/(?:pan|yun)\.baidu\.com.*(?:shareid=(\d+)&(?:uk=(\d+?))))(?#shareid和uk位置可能互换)/Uis';
 
 // 文件夹的正则
 $folder = '/\/(get|show|folder)\/(\d+)\/(\d+)\/(.+)(?:\/(\d+)[\/]((?:.+)\.(?:.+?))|\/(\d+?)[\/]{0,1}|\/)/Uis';
@@ -41,7 +41,6 @@ class BaiduPanProxy{
             if(0 != preg_match ( $value, $this->url, $match )){
                 switch ($k) {
                     case 'url':
-                        list ( , $this->shareid, $this->uk) = $match;
                         $this->method='get';//此情况下默认是get,不能自定义
                         $this->matchBy='url';
                         break;
@@ -121,8 +120,7 @@ class BaiduPanProxy{
             $this->realLink = $this->digFolder($this->path,$this->shareid ,$this->uk);
         }else{
             if(!$this->path){
-                $url = "http://pan.baidu.com/share/link?shareid=" . $this->shareid . "&uk=" . $this->uk;
-                $html = file_get_contents ( $url );
+				$html = file_get_contents ( $this->url );
                 if (0 == preg_match ( $this->trueLinkPreg, $html, $url ))
                     $this->error();
                 $_string = array ("replace" => Array ("&amp;", '\\' ), "string" => Array ("&", "" ) );
@@ -167,7 +165,7 @@ class BaiduPanProxy{
 
 }
 $link = new BaiduPanProxy($_SERVER ["QUERY_STRING"],$preg);
-$link->localVersion = '0.6';
+$link->localVersion = '0.7';
 $link->checkFrequency = 86400; // 每隔多少秒到服务器检测更新,默认是一天
 $link->haveFun();
 //ENDOFFILE
